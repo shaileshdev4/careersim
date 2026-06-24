@@ -1,1 +1,58 @@
-﻿{"note":"Run npm run fetch-photos -w @careersim/frontend to download ambient JPGs"}
+{
+  "surgeon": {
+    "file": "/careers/surgeon-ambient.jpg",
+    "photographer": "RDNE Stock project",
+    "photographerUrl": "https://www.pexels.com/@rdne",
+    "pexelsUrl": "https://www.pexels.com/photo/nurse-assisting-a-patient-on-a-wheelchair-6129870/",
+    "query": "hospital corridor night medical"
+  },
+  "engineer": {
+    "file": "/careers/engineer-ambient.jpg",
+    "photographer": "Daniil Komov",
+    "photographerUrl": "https://www.pexels.com/@dkomov",
+    "pexelsUrl": "https://www.pexels.com/photo/modern-laptop-on-wooden-desk-with-code-displayed-34803994/",
+    "query": "software developer desk dark office"
+  },
+  "teacher": {
+    "file": "/careers/teacher-ambient.jpg",
+    "photographer": "晓鸟  蓝",
+    "photographerUrl": "https://www.pexels.com/@419907350",
+    "pexelsUrl": "https://www.pexels.com/photo/empty-classroom-with-blackboard-and-desks-36159720/",
+    "query": "empty classroom chalkboard"
+  },
+  "analyst": {
+    "file": "/careers/analyst-ambient.jpg",
+    "photographer": "Calvin Seng",
+    "photographerUrl": "https://www.pexels.com/@calvinseng",
+    "pexelsUrl": "https://www.pexels.com/photo/night-view-of-skyscrapers-in-singapore-s-financial-district-32229751/",
+    "query": "investment bank office skyline night"
+  },
+  "nurse": {
+    "file": "/careers/nurse-ambient.jpg",
+    "photographer": "RDNE Stock project",
+    "photographerUrl": "https://www.pexels.com/@rdne",
+    "pexelsUrl": "https://www.pexels.com/photo/nurse-pushing-a-wheelchair-on-hospital-hallway-6129141/",
+    "query": "hospital hallway nurses station"
+  },
+  "journalist": {
+    "file": "/careers/journalist-ambient.jpg",
+    "photographer": "SHAHBAZ ZAMAN",
+    "photographerUrl": "https://www.pexels.com/@shahbazzaman",
+    "pexelsUrl": "https://www.pexels.com/photo/photo-of-a-studio-set-up-7865064/",
+    "query": "newsroom empty desks night"
+  },
+  "socialworker": {
+    "file": "/careers/socialworker-ambient.jpg",
+    "photographer": "RDNE Stock project",
+    "photographerUrl": "https://www.pexels.com/@rdne",
+    "pexelsUrl": "https://www.pexels.com/photo/a-couple-sitting-on-the-couch-9064805/",
+    "query": "community center office counseling"
+  },
+  "uxdesigner": {
+    "file": "/careers/uxdesigner-ambient.jpg",
+    "photographer": "Shuki Harel",
+    "photographerUrl": "https://www.pexels.com/@shuki-harel-361328",
+    "pexelsUrl": "https://www.pexels.com/photo/concentrated-male-entrepreneur-analyzing-project-standing-near-whiteboard-in-modern-workspace-4463588/",
+    "query": "ux design studio whiteboard"
+  }
+}
