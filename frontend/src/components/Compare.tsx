@@ -113,7 +113,7 @@ function DayPanel({
           {career.title}
         </div>
         <div className="eyebrow faint" style={{ marginTop: 3 }}>
-          {theme.texture} Â· ended {formatClock(run.finalState.clock)}
+          {theme.texture} · ended {formatClock(run.finalState.clock)}
         </div>
       </div>
 

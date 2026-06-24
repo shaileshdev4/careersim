@@ -162,13 +162,13 @@ function CareerTile({
             style={{ background: t.accent }}
             aria-hidden
           />
-          {formatClock(career.dayStart)} â€“ {formatClock(career.dayEndApprox)}
+          {formatClock(career.dayStart)} – {formatClock(career.dayEndApprox)}
           {inProgress && (
             <span className="career-tile__continue">
-              Â· continue day {arc!.currentDay}
+              · continue day {arc!.currentDay}
             </span>
           )}
-          {arc?.complete && <span> Â· arc complete</span>}
+          {arc?.complete && <span> · arc complete</span>}
         </span>
         {inProgress && (
           <span

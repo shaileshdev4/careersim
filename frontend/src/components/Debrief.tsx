@@ -31,7 +31,7 @@ export function Debrief({
     >
       <div>
         <div className="eyebrow" style={{ color: theme.accent }}>
-          end of day Â· {career.title.toLowerCase()}
+          end of day · {career.title.toLowerCase()}
         </div>
         <h2
           className="display"
@@ -87,7 +87,7 @@ export function Debrief({
               <span
                 style={{ position: "absolute", left: 0, color: theme.accent }}
               >
-                Â·
+                ·
               </span>
               {s}
             </li>

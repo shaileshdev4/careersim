@@ -155,7 +155,7 @@ function Provenance({
   theme: Theme;
 }) {
   const label = upgrading
-    ? "dramatizingâ€¦"
+    ? "dramatizing…"
     : source === "model"
       ? "live-dramatized"
       : "authored scene";

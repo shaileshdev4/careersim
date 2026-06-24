@@ -28,7 +28,7 @@ export function DeltaPreview({
   if (parts.length === 0) return null;
   return (
     <div className="eyebrow faint" style={{ fontSize: 10, marginTop: 4 }}>
-      {parts.join(" Â· ")}
+      {parts.join(" · ")}
     </div>
   );
 }

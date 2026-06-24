@@ -276,7 +276,7 @@ function PlayScreen({
             {arc && hasArc(career.id) && (
               <span className="faint" style={{ fontWeight: 400 }}>
                 {" "}
-                Â· day {arcDay} of {arc.totalDays}
+                · day {arcDay} of {arc.totalDays}
               </span>
             )}
           </div>
