@@ -1,0 +1,17 @@
+﻿node_modules/
+.next/
+out/
+build/
+coverage/
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# Internal docs - only README + ARCHITECTURE tracked
+*.md
+!README.md
+!ARCHITECTURE.md
