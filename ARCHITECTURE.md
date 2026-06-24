@@ -4,15 +4,15 @@
 
 ```
 careersim/
-├── frontend/          @careersim/frontend  — Next.js UI (port 3000)
+├── frontend/          @careersim/frontend  — Next.js UI + /api/dramatize (Vercel)
 ├── backend/
 │   ├── engine/      @careersim/engine    — deterministic scenario engine
-│   └── api/         @careersim/api       — dramatization API (port 3001)
+│   └── api/         @careersim/api       — optional standalone API (local split-dev)
 ├── README.md
 └── ARCHITECTURE.md
 ```
 
-The frontend proxies `/api/dramatize` to the backend. The engine has zero UI dependencies and is tested independently.
+On Vercel, deploy `frontend/` as a single Next.js project — the dramatize route runs as a serverless function. The engine has zero UI dependencies and is tested independently.
 
 ---
 
