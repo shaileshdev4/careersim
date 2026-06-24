@@ -53,7 +53,7 @@ if ($left) {
   git commit -m "chore: finalize monorepo layout"
 }
 
-git remote remove origin 2>$null
+git remote get-url origin 2>$null; if ($LASTEXITCODE -eq 0) { git remote remove origin }
 git remote add origin git@github-dev:shaileshdev4/careersim.git
 git push -u origin main
 Write-Host "Done. Pushed to origin main."
