@@ -75,7 +75,7 @@ export function RankScene({
                   onClick={() => move(index, -1)}
                   aria-label="Move up"
                 >
-                  â†‘
+                  ↑
                 </button>
                 <button
                   type="button"
@@ -85,7 +85,7 @@ export function RankScene({
                   onClick={() => move(index, 1)}
                   aria-label="Move down"
                 >
-                  â†“
+                  ↓
                 </button>
               </div>
             </div>
@@ -105,7 +105,7 @@ export function RankScene({
         style={{ background: theme.accentSoft, borderColor: theme.edge }}
         onClick={() => onCommit(order)}
       >
-        Commit this order â†’
+        Commit this order →
       </button>
     </div>
   );

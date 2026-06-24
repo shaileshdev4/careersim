@@ -1,19 +1,21 @@
 ﻿"use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Beat,
   Choice,
   DramatizedBeat,
   isRankBeat,
   MeterDef,
-  resolveRankChoice,
 } from "@careersim/engine";
 import { Theme } from "./theme";
 import { ArtifactPanel } from "./ArtifactPanel";
 import { DeltaPreview } from "./DeltaPreview";
 import { PressureBar } from "./PressureBar";
 import { RankScene } from "./RankScene";
+import { StreamingText } from "./StreamingText";
+import { SpeakerButton } from "./SpeakerButton";
+import { useNarration } from "./speech/useNarration";
 
 export function SceneCard({
   beat,
@@ -37,15 +39,52 @@ export function SceneCard({
   onAdvance: () => void;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [consequenceReady, setConsequenceReady] = useState(false);
+
   const rankMode = isRankBeat(beat) && !committed;
+  const sceneStreamKey = `${beat.id}:scene:${content.source}:${content.scene.length}`;
+  const consequenceStreamKey = committed
+    ? `${beat.id}:consequence:${committed.id}`
+    : "";
+
+  useEffect(() => {
+    setSceneReady(false);
+  }, [beat.id, content.scene]);
+
+  useEffect(() => {
+    if (committed) setConsequenceReady(true);
+    else setConsequenceReady(false);
+  }, [committed?.id, committed]);
 
   const handlePressureExpire = useCallback(() => {
-    if (committed || !beat.pressure) return;
+    if (committed || !beat.pressure || !sceneReady) return;
     const fallback = beat.choices.find(
       (c) => c.id === beat.pressure!.defaultChoiceId,
     );
     if (fallback) onCommit(fallback);
-  }, [beat, committed, onCommit]);
+  }, [beat, committed, onCommit, sceneReady]);
+
+  const showInteractions = sceneReady && !committed;
+  const timerPaused = !sceneReady || !!committed;
+
+  const sceneSpeechId = `scene:${sceneStreamKey}`;
+  const sceneNarration = useNarration(
+    content.scene,
+    sceneSpeechId,
+    theme.tempo,
+    !committed,
+  );
+
+  const consequenceSpeechId = consequenceStreamKey
+    ? `consequence:${consequenceStreamKey}`
+    : "";
+  const consequenceNarration = useNarration(
+    committed?.consequence ?? "",
+    consequenceSpeechId,
+    theme.tempo,
+    !!committed,
+  );
 
   return (
     <div
@@ -57,60 +96,91 @@ export function SceneCard({
         <PressureBar
           pressure={beat.pressure}
           theme={theme}
-          paused={!!committed}
+          paused={timerPaused}
           onExpire={handlePressureExpire}
         />
       )}
 
-      <p
-        className="display"
+      <div
         style={{
-          fontSize: 19,
-          lineHeight: 1.5,
-          fontWeight: 500,
-          maxWidth: "52ch",
-          color: "var(--ink)",
+          display: "flex",
+          gap: 12,
+          alignItems: "flex-start",
         }}
       >
-        {content.scene}
-      </p>
+        <p
+          className="display"
+          style={{
+            flex: 1,
+            fontSize: 19,
+            lineHeight: 1.5,
+            fontWeight: 500,
+            maxWidth: "52ch",
+            color: "var(--ink)",
+            minHeight: "3.2em",
+            margin: 0,
+          }}
+        >
+          <StreamingText
+            text={content.scene}
+            streamKey={sceneStreamKey}
+            theme={theme}
+            onComplete={() => setSceneReady(true)}
+          />
+        </p>
+        {sceneNarration.supported && !committed && (
+          <SpeakerButton
+            active={sceneNarration.isSpeaking}
+            onClick={sceneNarration.toggle}
+            theme={theme}
+            label="Listen to scene"
+          />
+        )}
+      </div>
 
-      {beat.artifacts && beat.artifacts.length > 0 && !committed && (
-        <ArtifactPanel artifacts={beat.artifacts} theme={theme} />
+      {showInteractions && beat.artifacts && beat.artifacts.length > 0 && (
+        <div className="interaction-reveal">
+          <ArtifactPanel artifacts={beat.artifacts} theme={theme} />
+        </div>
       )}
 
-      {!committed ? (
-        rankMode ? (
-          <RankScene
-            beat={beat}
-            meters={meters}
-            theme={theme}
-            onCommit={onCommitRank}
-          />
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            {beat.choices.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="choice-btn"
-                onMouseEnter={() => setHoveredId(c.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onFocus={() => setHoveredId(c.id)}
-                onBlur={() => setHoveredId(null)}
-                onClick={() => onCommit(c)}
-              >
-                {content.choiceLabels[c.id] ?? c.label}
-                <DeltaPreview
-                  delta={c.delta}
-                  meters={meters}
-                  visible={hoveredId === c.id}
-                />
-              </button>
-            ))}
-          </div>
-        )
-      ) : (
+      {showInteractions && (
+        <div className="interaction-reveal">
+          {rankMode ? (
+            <RankScene
+              beat={beat}
+              meters={meters}
+              theme={theme}
+              onCommit={onCommitRank}
+            />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {beat.choices.map((c, i) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="choice-btn choice-stagger"
+                  style={{ animationDelay: `${i * 0.07}s` }}
+                  onMouseEnter={() => setHoveredId(c.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onFocus={() => setHoveredId(c.id)}
+                  onBlur={() => setHoveredId(null)}
+                  onClick={() => onCommit(c)}
+                >
+                  {content.choiceLabels[c.id] ?? c.label}
+                  <DeltaPreview
+                    delta={c.delta}
+                    meters={meters}
+                    visible={hoveredId === c.id}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {committed && (
         <div
           className="scene-in"
           style={{
@@ -121,26 +191,57 @@ export function SceneCard({
             gap: 14,
           }}
         >
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--ink)" }}>
-            {committed.consequence}
-          </p>
-          <button
-            type="button"
-            className="choice-btn"
+          <div
             style={{
-              alignSelf: "flex-start",
-              width: "auto",
-              background: theme.accentSoft,
-              borderColor: theme.edge,
+              display: "flex",
+              gap: 12,
+              alignItems: "flex-start",
             }}
-            onClick={onAdvance}
           >
-            Continue â†’
-          </button>
+            <p
+              style={{
+                flex: 1,
+                fontSize: 15,
+                lineHeight: 1.6,
+                color: "var(--ink)",
+                margin: 0,
+              }}
+            >
+              {committed.consequence}
+            </p>
+            {consequenceNarration.supported && (
+              <SpeakerButton
+                active={consequenceNarration.isSpeaking}
+                onClick={consequenceNarration.toggle}
+                theme={theme}
+                label="Listen to consequence"
+              />
+            )}
+          </div>
+          {consequenceReady && (
+            <button
+              type="button"
+              className="choice-btn interaction-reveal"
+              style={{
+                alignSelf: "flex-start",
+                width: "auto",
+                background: theme.accentSoft,
+                borderColor: theme.edge,
+              }}
+              onClick={onAdvance}
+            >
+              Continue →
+            </button>
+          )}
         </div>
       )}
 
-      <Provenance source={content.source} upgrading={upgrading} theme={theme} />
+      <Provenance
+        source={content.source}
+        upgrading={upgrading}
+        isStreaming={!sceneReady && !committed}
+        theme={theme}
+      />
     </div>
   );
 }
@@ -148,28 +249,35 @@ export function SceneCard({
 function Provenance({
   source,
   upgrading,
+  isStreaming,
   theme,
 }: {
   source: "model" | "fallback";
   upgrading: boolean;
+  isStreaming: boolean;
   theme: Theme;
 }) {
   const label = upgrading
     ? "dramatizing…"
-    : source === "model"
-      ? "live-dramatized"
-      : "authored scene";
+    : isStreaming
+      ? "live"
+      : source === "model"
+        ? "live-dramatized"
+        : "authored scene";
   return (
     <div
       style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 2 }}
     >
       <span
-        className={upgrading ? "pulse-dot" : ""}
+        className={upgrading || isStreaming ? "pulse-dot" : ""}
         style={{
           width: 6,
           height: 6,
           borderRadius: 3,
-          background: source === "model" ? theme.accent : "var(--ink-faint)",
+          background:
+            upgrading || isStreaming || source === "model"
+              ? theme.accent
+              : "var(--ink-faint)",
         }}
       />
       <span className="eyebrow faint" style={{ fontSize: 10 }}>

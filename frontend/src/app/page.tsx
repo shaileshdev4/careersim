@@ -397,7 +397,7 @@ function CompareGate({
           style={{ width: "auto", alignSelf: "flex-start" }}
           onClick={onBack}
         >
-          â† Back
+          ← Back
         </button>
       </div>
     );

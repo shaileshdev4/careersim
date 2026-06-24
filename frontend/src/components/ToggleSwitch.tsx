@@ -8,31 +8,53 @@ export function ToggleSwitch({
 }: {
   label: string;
   value: boolean;
-  onChange: (v: boolean) => void;
+  onChange: (value: boolean) => void;
   title?: string;
 }) {
   return (
     <label
-      className="toggle"
-      title={title}
       style={{
-        display: "inline-flex",
+        display: "flex",
         alignItems: "center",
         gap: 8,
         cursor: "pointer",
-        fontSize: 11,
-        textTransform: "uppercase",
-        letterSpacing: "0.12em",
-        color: "var(--ink-dim)",
+        fontSize: 12,
       }}
+      className="dim"
+      title={title}
     >
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => onChange(e.target.checked)}
-        style={{ accentColor: "var(--accent)" }}
-      />
-      {label}
+      <span className="eyebrow" style={{ fontSize: 10 }}>
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        aria-label={label}
+        onClick={() => onChange(!value)}
+        style={{
+          width: 34,
+          height: 19,
+          borderRadius: 12,
+          padding: 2,
+          border: "none",
+          cursor: "pointer",
+          transition: "background 0.2s ease",
+          background: value ? "var(--accent, #888)" : "rgba(255,255,255,0.18)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: value ? "flex-end" : "flex-start",
+        }}
+      >
+        <span
+          style={{
+            width: 15,
+            height: 15,
+            borderRadius: 8,
+            background: "#fff",
+          }}
+        />
+      </button>
     </label>
   );
 }

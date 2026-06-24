@@ -71,7 +71,7 @@ export function Compare({
         style={{ width: "auto", alignSelf: "flex-start" }}
         onClick={onBack}
       >
-        â† Back
+        ← Back
       </button>
 
       <style>{`@media (max-width: 640px){ .cmp-grid { grid-template-columns: 1fr !important; } }`}</style>

@@ -8,60 +8,58 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useSpeech } from "./useSpeech";
+
+const AUTO_READ_KEY = "a-day-in-auto-read";
 
 type SpeechContextValue = {
-  supported: boolean;
   autoRead: boolean;
-  setAutoRead: (v: boolean) => void;
-  speak: (text: string) => void;
+  setAutoRead: (value: boolean) => void;
+  speak: (text: string, id: string, rate?: number) => void;
   stop: () => void;
+  speaking: boolean;
+  speakingId: string | null;
+  supported: boolean;
 };
 
 const SpeechContext = createContext<SpeechContextValue | null>(null);
 
 export function SpeechProvider({ children }: { children: React.ReactNode }) {
-  const [autoRead, setAutoRead] = useState(false);
-  const supported =
-    typeof window !== "undefined" && "speechSynthesis" in window;
-
-  const stop = useCallback(() => {
-    if (!supported) return;
-    window.speechSynthesis.cancel();
-  }, [supported]);
-
-  const speak = useCallback(
-    (text: string) => {
-      if (!supported || !text.trim()) return;
-      stop();
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1;
-      window.speechSynthesis.speak(u);
-    },
-    [supported, stop],
-  );
+  const speech = useSpeech();
+  const [autoRead, setAutoReadState] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     try {
-      const saved = localStorage.getItem("a-day-in-auto-read");
-      if (saved === "1") setAutoRead(true);
+      setAutoReadState(localStorage.getItem(AUTO_READ_KEY) === "1");
     } catch {
-      /* ignore */
+      /* private browsing */
     }
   }, []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem("a-day-in-auto-read", autoRead ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-  }, [autoRead]);
+  const setAutoRead = useCallback(
+    (value: boolean) => {
+      setAutoReadState(value);
+      try {
+        localStorage.setItem(AUTO_READ_KEY, value ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      if (!value) speech.stop();
+    },
+    [speech],
+  );
 
   const value = useMemo(
-    () => ({ supported, autoRead, setAutoRead, speak, stop }),
-    [supported, autoRead, speak, stop],
+    () => ({
+      autoRead,
+      setAutoRead,
+      speak: speech.speak,
+      stop: speech.stop,
+      speaking: speech.speaking,
+      speakingId: speech.speakingId,
+      supported: speech.supported,
+    }),
+    [autoRead, setAutoRead, speech],
   );
 
   return (
@@ -78,6 +76,8 @@ export function useSpeechContext(): SpeechContextValue {
       setAutoRead: () => {},
       speak: () => {},
       stop: () => {},
+      speaking: false,
+      speakingId: null,
     };
   }
   return ctx;

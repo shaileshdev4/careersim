@@ -153,7 +153,7 @@ export function Debrief({
           }}
           onClick={onCompare}
         >
-          Compare two days side by side â†’
+          Compare two days side by side →
         </button>
         <button
           className="choice-btn"
