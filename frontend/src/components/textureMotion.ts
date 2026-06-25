@@ -4,6 +4,7 @@ export type BgPattern =
   | "none"
   | "ekg"
   | "grid"
+  | "circuit"
   | "geometry"
   | "wave"
   | "scanlines"
@@ -89,7 +90,7 @@ export function texturePattern(texture: string): BgPattern {
     case "tense":
       return "ekg";
     case "quiet":
-      return "grid";
+      return "circuit";
     case "iterative":
       return "geometry";
     case "frantic":

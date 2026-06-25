@@ -62,6 +62,78 @@ export function BackgroundPattern({
         </svg>
       )}
 
+      {pattern === "circuit" && (
+        <svg
+          className="live-bg__pattern live-bg__pattern--circuit"
+          viewBox="0 0 400 300"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden
+        >
+          <path
+            d="M 0 72 H 96 V 128 H 220 V 88 H 320 V 168 H 400"
+            stroke={accent}
+            strokeOpacity={PAT.line}
+            fill="none"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 48 0 V 56 H 168 V 204 H 88 V 300"
+            stroke={accent}
+            strokeOpacity={PAT.soft}
+            fill="none"
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M 260 24 H 360 V 112 H 280 V 236 H 400"
+            stroke={accent}
+            strokeOpacity={PAT.line * 0.9}
+            fill="none"
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <rect
+            x="92"
+            y="120"
+            width="28"
+            height="16"
+            rx="3"
+            stroke={accent}
+            strokeOpacity={PAT.line}
+            fill={accent}
+            fillOpacity={PAT.fill}
+            strokeWidth="1"
+          />
+          <rect
+            x="204"
+            y="80"
+            width="36"
+            height="20"
+            rx="4"
+            stroke={accent}
+            strokeOpacity={PAT.soft}
+            fill="none"
+            strokeWidth="1"
+          />
+          <rect
+            x="276"
+            y="156"
+            width="24"
+            height="24"
+            rx="5"
+            stroke={accent}
+            strokeOpacity={PAT.soft}
+            fill={accent}
+            fillOpacity={PAT.fill * 0.7}
+            strokeWidth="1"
+          />
+        </svg>
+      )}
+
       {pattern === "geometry" && (
         <svg
           className="live-bg__pattern live-bg__pattern--geometry"

@@ -600,13 +600,23 @@ body {
   height: 100%;
 }
 
-/* Engineer - full-viewport dot grid */
+/* Legacy dot grid (unused by careers; kept for reference) */
 .live-bg__pattern-wrap--grid {
   inset: 0;
 }
 
 .live-bg__pattern-wrap--grid .live-bg__pattern {
   animation: patternDrift calc(var(--drift-s) * 2.2) linear infinite;
+}
+
+/* Software engineer - PCB / trace lines */
+.live-bg__pattern-wrap--circuit {
+  inset: 0;
+  opacity: 0.78;
+}
+
+.live-bg__pattern-wrap--circuit .live-bg__pattern {
+  animation: patternFloat calc(var(--drift-s) * 2) ease-in-out infinite;
 }
 
 /* UX designer - shapes upper-right + lower-left */
