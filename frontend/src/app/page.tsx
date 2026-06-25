@@ -32,6 +32,7 @@ import { LiveBackground } from "@/components/LiveBackground";
 import { Onboarding, useOnboarding } from "@/components/Onboarding";
 import { SavedRunsPanel } from "@/components/SavedRuns";
 import { useDramatizedBeat } from "@/components/useDramatizedBeat";
+import { ScreenTransition } from "@/components/ScreenTransition";
 
 type Screen = AppScreen;
 
@@ -52,10 +53,13 @@ export default function Page() {
   const isShell = screen === "select" || screen === "runs";
   const simAmbient = {
     active: screen === "play" || screen === "debrief" || screen === "compare",
+    play: screen === "play",
     careerId: career?.id,
     energy: runs[career?.id ?? ""]?.finalState.energy,
     phase: null as string | null,
   };
+  const immersiveJitter =
+    !isShell && career != null && themeFor(career).jitter > 0.15;
 
   useEffect(() => {
     setArcs(loadArcs());
@@ -107,7 +111,7 @@ export default function Page() {
         <Onboarding open={onboarding.open} onDismiss={onboarding.dismiss} />
       )}
       <div
-        className={`app-shell${isShell ? " app-shell--landing" : " app-shell--immersive"}`}
+        className={`app-shell${isShell ? " app-shell--landing" : " app-shell--immersive"}${immersiveJitter ? " app-shell--jitter" : ""}`}
         style={isShell ? themeVars(stageTheme) : undefined}
       >
         <div
@@ -131,82 +135,84 @@ export default function Page() {
             />
           )}
 
-          {screen === "select" && (
-            <CareerSelect
-              arcs={arcs}
-              onPick={start}
-              onContinue={start}
-              onViewRuns={() => setScreen("runs")}
-              onHowItWorks={onboarding.reopen}
-              runsRefreshKey={runsRefreshKey}
-            />
-          )}
+          <ScreenTransition screenKey={screen}>
+            {screen === "select" && (
+              <CareerSelect
+                arcs={arcs}
+                onPick={start}
+                onContinue={start}
+                onViewRuns={() => setScreen("runs")}
+                onHowItWorks={onboarding.reopen}
+                runsRefreshKey={runsRefreshKey}
+              />
+            )}
 
-          {screen === "runs" && (
-            <SavedRunsPanel
-              onBack={() => setScreen("select")}
-              refreshKey={runsRefreshKey}
-            />
-          )}
+            {screen === "runs" && (
+              <SavedRunsPanel
+                onBack={() => setScreen("select")}
+                refreshKey={runsRefreshKey}
+              />
+            )}
 
-          {screen === "play" && career && (
-            <PlayScreen
-              key={playKey}
-              career={career}
-              arc={playArc}
-              live={live}
-              onComplete={(r, updatedArc) => {
-                setRuns((prev) => ({ ...prev, [career.id]: r }));
-                if (updatedArc) {
-                  saveArc(updatedArc);
-                  setArcs((prev) => ({ ...prev, [career.id]: updatedArc }));
-                  setPlayArc(updatedArc);
-                }
-                saveRunRecord(
-                  createSavedRunRecord(career, r, updatedArc ?? playArc),
-                );
-                setRunsRefreshKey((k) => k + 1);
-                setScreen("debrief");
-              }}
-            />
-          )}
+            {screen === "play" && career && (
+              <PlayScreen
+                key={playKey}
+                career={career}
+                arc={playArc}
+                live={live}
+                onComplete={(r, updatedArc) => {
+                  setRuns((prev) => ({ ...prev, [career.id]: r }));
+                  if (updatedArc) {
+                    saveArc(updatedArc);
+                    setArcs((prev) => ({ ...prev, [career.id]: updatedArc }));
+                    setPlayArc(updatedArc);
+                  }
+                  saveRunRecord(
+                    createSavedRunRecord(career, r, updatedArc ?? playArc),
+                  );
+                  setRunsRefreshKey((k) => k + 1);
+                  setScreen("debrief");
+                }}
+              />
+            )}
 
-          {screen === "debrief" && career && runs[career.id] && (
-            <Debrief
-              career={career}
-              result={runs[career.id]}
-              theme={themeFor(career)}
-              onTryAdjacent={(id) => CAREERS[id] && start(CAREERS[id])}
-              onReplay={() => {
-                if (!career || !playArc || !hasArc(career.id)) {
-                  start(career);
-                  return;
-                }
-                const trimmed = playArc.completedDays.slice(0, -1);
-                const replayed: ArcProgress = {
-                  ...playArc,
-                  completedDays: trimmed,
-                  currentDay: trimmed.length + 1,
-                  complete: false,
-                };
-                saveArc(replayed);
-                setArcs((prev) => ({ ...prev, [career.id]: replayed }));
-                setPlayArc(replayed);
-                setPlayKey((k) => k + 1);
-                setScreen("play");
-              }}
-              onCompare={() => setScreen("compare")}
-            />
-          )}
+            {screen === "debrief" && career && runs[career.id] && (
+              <Debrief
+                career={career}
+                result={runs[career.id]}
+                theme={themeFor(career)}
+                onTryAdjacent={(id) => CAREERS[id] && start(CAREERS[id])}
+                onReplay={() => {
+                  if (!career || !playArc || !hasArc(career.id)) {
+                    start(career);
+                    return;
+                  }
+                  const trimmed = playArc.completedDays.slice(0, -1);
+                  const replayed: ArcProgress = {
+                    ...playArc,
+                    completedDays: trimmed,
+                    currentDay: trimmed.length + 1,
+                    complete: false,
+                  };
+                  saveArc(replayed);
+                  setArcs((prev) => ({ ...prev, [career.id]: replayed }));
+                  setPlayArc(replayed);
+                  setPlayKey((k) => k + 1);
+                  setScreen("play");
+                }}
+                onCompare={() => setScreen("compare")}
+              />
+            )}
 
-          {screen === "compare" && career && (
-            <CompareGate
-              runs={runs}
-              current={career}
-              onBack={() => setScreen("debrief")}
-              onPlay={start}
-            />
-          )}
+            {screen === "compare" && career && (
+              <CompareGate
+                runs={runs}
+                current={career}
+                onBack={() => setScreen("debrief")}
+                onPlay={start}
+              />
+            )}
+          </ScreenTransition>
         </div>
         {isShell && <AppFooter onHowItWorks={onboarding.reopen} />}
       </div>
@@ -260,16 +266,8 @@ function PlayScreen({
     arcDay > 1 && prevDay ? carryoverSummary(career, prevDay) : null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
+    <div className="play-layout">
+      <div className="play-layout__head">
         <div>
           <div className="eyebrow" style={{ color: theme.accent }}>
             {career.title}
@@ -323,23 +321,18 @@ function PlayScreen({
           onCommit={run.commit}
           onCommitRank={run.commitRank}
           onAdvance={run.advance}
+          layout="play"
+          careerId={career.id}
         />
       )}
 
-      <div
-        style={{
-          marginTop: 4,
-          paddingTop: 16,
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        <Meters
-          defs={career.meters}
-          values={run.state.meters}
-          energy={run.state.energy}
-          theme={theme}
-        />
-      </div>
+      <Meters
+        defs={career.meters}
+        values={run.state.meters}
+        energy={run.state.energy}
+        theme={theme}
+        variant="play"
+      />
     </div>
   );
 }

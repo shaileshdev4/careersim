@@ -9,10 +9,15 @@ import {
   textureMotionVars,
   texturePattern,
 } from "./textureMotion";
-import { careerAmbientUrl } from "./careerAmbient";
+import {
+  careerAmbientUrl,
+  careerAmbientStyle,
+} from "./careerAmbient";
 
 export type SimAmbient = {
   active: boolean;
+  /** Play screen gets a tighter, more recessive photo treatment. */
+  play?: boolean;
   careerId?: string | null;
   energy?: number;
   phase?: string | null;
@@ -31,12 +36,14 @@ export function LiveBackground({
   const motion = textureMotionVars(theme.texture, theme.tempo);
   const pattern = texturePattern(theme.texture);
   const simActive = sim?.active ?? false;
+  const simPlay = sim?.play ?? false;
   const photoUrl =
     simActive && sim?.careerId ? careerAmbientUrl(sim.careerId) : null;
+  const photoStyle = careerAmbientStyle(sim?.careerId);
 
   return (
     <div
-      className={`${liveBgClass(theme)}${photoUrl ? " live-bg--photo" : ""}`}
+      className={`${liveBgClass(theme)}${photoUrl ? " live-bg--photo" : ""}${simPlay ? " live-bg--play" : ""}`}
       aria-hidden
       style={
         {
@@ -50,6 +57,9 @@ export function LiveBackground({
           "--orb-opacity": motion.orbOpacity,
           "--orb-blur": `${motion.orbBlur}px`,
           "--pattern-opacity": pattern === "none" ? 0 : 1,
+          "--photo-position": photoStyle.position ?? "center",
+          "--photo-scale": String(1.05 * (photoStyle.scale ?? 1)),
+          "--photo-strength": String(photoStyle.opacity ?? 1),
         } as CSSProperties
       }
     >

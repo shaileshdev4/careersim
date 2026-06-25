@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import {
   Beat,
   Choice,
@@ -16,6 +16,8 @@ import { RankScene } from "./RankScene";
 import { StreamingText } from "./StreamingText";
 import { SpeakerButton } from "./SpeakerButton";
 import { useNarration } from "./speech/useNarration";
+import { BeatTransition } from "./ScreenTransition";
+import { careerAmbientUrl, careerAmbientStyle } from "./careerAmbient";
 
 export function SceneCard({
   beat,
@@ -27,6 +29,8 @@ export function SceneCard({
   onCommit,
   onCommitRank,
   onAdvance,
+  layout = "default",
+  careerId,
 }: {
   beat: Beat;
   content: DramatizedBeat;
@@ -37,6 +41,8 @@ export function SceneCard({
   onCommit: (choice: Choice) => void;
   onCommitRank: (order: string[]) => void;
   onAdvance: () => void;
+  layout?: "default" | "play";
+  careerId?: string;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
@@ -86,12 +92,27 @@ export function SceneCard({
     !!committed,
   );
 
+  const playFocus = layout === "play";
+  const ambientPhoto = playFocus && careerId ? careerAmbientUrl(careerId) : null;
+  const ambientStyle = careerAmbientStyle(careerId);
+
   return (
-    <div
-      className="scene-in"
-      key={beat.id}
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
-    >
+    <BeatTransition beatKey={beat.id}>
+      <div
+        className={`${playFocus ? "play-scene-panel" : "scene-in"}${ambientPhoto ? " play-scene-panel--photo" : ""}`}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: playFocus ? 16 : 18,
+          ...(ambientPhoto
+            ? ({
+                // @ts-expect-error custom props
+                "--panel-photo": `url(${ambientPhoto})`,
+                "--panel-photo-position": ambientStyle.position ?? "center",
+              } as CSSProperties)
+            : {}),
+        }}
+      >
       {beat.pressure && !committed && (
         <PressureBar
           pressure={beat.pressure}
@@ -109,17 +130,21 @@ export function SceneCard({
         }}
       >
         <p
-          className="display"
-          style={{
-            flex: 1,
-            fontSize: 19,
-            lineHeight: 1.5,
-            fontWeight: 500,
-            maxWidth: "52ch",
-            color: "var(--ink)",
-            minHeight: "3.2em",
-            margin: 0,
-          }}
+          className={`display${playFocus ? " scene-hero" : ""}`}
+          style={
+            playFocus
+              ? { flex: 1, margin: 0 }
+              : {
+                  flex: 1,
+                  fontSize: 19,
+                  lineHeight: 1.5,
+                  fontWeight: 500,
+                  maxWidth: "52ch",
+                  color: "var(--ink)",
+                  minHeight: "3.2em",
+                  margin: 0,
+                }
+          }
         >
           <StreamingText
             text={content.scene}
@@ -241,8 +266,10 @@ export function SceneCard({
         upgrading={upgrading}
         isStreaming={!sceneReady && !committed}
         theme={theme}
+        subdued={playFocus}
       />
-    </div>
+      </div>
+    </BeatTransition>
   );
 }
 
@@ -251,11 +278,13 @@ function Provenance({
   upgrading,
   isStreaming,
   theme,
+  subdued,
 }: {
   source: "model" | "fallback";
   upgrading: boolean;
   isStreaming: boolean;
   theme: Theme;
+  subdued?: boolean;
 }) {
   const label = upgrading
     ? "dramatizing…"
@@ -266,6 +295,7 @@ function Provenance({
         : "authored scene";
   return (
     <div
+      className={subdued ? "scene-provenance" : undefined}
       style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 2 }}
     >
       <span

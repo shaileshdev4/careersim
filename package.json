@@ -9,18 +9,10 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @careersim/frontend",
-    "dev:split": "concurrently \"npm run dev -w @careersim/api\" \"npm run dev -w @careersim/frontend\"",
-    "dev:web": "npm run dev -w @careersim/frontend",
-    "dev:api": "npm run dev -w @careersim/api",
     "build": "npm run build -w @careersim/frontend",
     "start": "npm run start -w @careersim/frontend",
     "test": "npm run test -w @careersim/engine",
+    "validate": "npm run test -w @careersim/engine",
     "lint": "npm run lint -w @careersim/frontend"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
   }
 }

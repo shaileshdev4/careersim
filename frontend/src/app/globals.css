@@ -174,15 +174,15 @@ body {
   background-image: var(--tile-photo);
   background-size: cover;
   background-position: center;
-  opacity: 0.48;
-  filter: saturate(0.88) brightness(0.7);
+  opacity: 0.32;
+  filter: saturate(0.88) brightness(0.68);
   transition: opacity 0.28s ease, transform 0.35s ease, filter 0.28s ease;
 }
 
 .career-tile:hover .career-tile__photo {
-  opacity: 0.55;
+  opacity: 0.42;
   transform: scale(1.05);
-  filter: saturate(0.95) brightness(0.76);
+  filter: saturate(0.92) brightness(0.74);
 }
 
 .career-tile__veil {
@@ -321,21 +321,60 @@ body {
   transition: background 1.1s ease, opacity 1.1s ease;
 }
 
-/* Photo visible; career gradient is a lighter overlay for readability */
+/* Ambient career photo behind gradient — match card visibility */
 .live-bg--photo .live-bg__base {
-  opacity: 0.52;
+  opacity: 0.5;
 }
 
 .live-bg__photo {
   position: absolute;
-  inset: -5%;
+  inset: -2%;
   z-index: 0;
   background-size: cover;
-  background-position: center;
-  opacity: 0.92;
-  filter: blur(3px) brightness(0.68) saturate(0.95);
-  transform: scale(1.05);
-  transition: opacity 1.2s ease, filter 1.2s ease;
+  background-position: var(--photo-position, center);
+  background-repeat: no-repeat;
+  opacity: calc(0.32 * var(--photo-strength, 1));
+  filter: blur(4px) brightness(0.62) saturate(0.88);
+  transform: scale(var(--photo-scale, 1.05));
+  transition: opacity 1.2s ease, filter 1.2s ease, transform 1.2s ease;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    rgba(0, 0, 0, 0.22) 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    rgba(0, 0, 0, 0.22) 72%,
+    transparent 100%
+  );
+}
+
+/* Play: same family as career tiles — low but clearly there */
+.live-bg--play .live-bg__photo {
+  opacity: calc(0.2 * var(--photo-strength, 1));
+  filter: blur(5px) brightness(0.58) saturate(0.85);
+}
+
+.live-bg--play.live-bg--photo .live-bg__base {
+  opacity: 0.52;
+}
+
+.live-bg--play .live-bg__scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.22) 40%,
+    rgba(0, 0, 0, 0.5) 68%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
+}
+
+.live-bg--play .live-bg__orb {
+  opacity: calc(var(--orb-opacity, 0.42) * 0.65);
 }
 
 .live-bg__scrim {
@@ -343,10 +382,12 @@ body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.12) 0%,
-      rgba(0, 0, 0, 0.38) 42%,
-      rgba(0, 0, 0, 0.52) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.42) 38%,
+    rgba(0, 0, 0, 0.72) 100%
+  );
 }
 
 .live-bg--photo .live-bg__grain {
@@ -1207,6 +1248,115 @@ body {
   padding-bottom: 40px;
 }
 
+.app-shell--jitter .app-shell__content {
+  animation: jitter 5.5s ease-in-out infinite;
+}
+
+/* ---- Play screen layout (scene text = hero, meters = support) ---- */
+.play-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.play-layout__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.play-scene-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(4, 6, 10, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px 20px 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+
+/* Same photo language as career select tiles */
+.play-scene-panel--photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--panel-photo);
+  background-size: cover;
+  background-position: var(--panel-photo-position, center);
+  background-repeat: no-repeat;
+  opacity: 0.2;
+  filter: saturate(0.88) brightness(0.64);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.play-scene-panel--photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    168deg,
+    rgba(4, 6, 10, 0.72) 0%,
+    rgba(4, 6, 10, 0.86) 48%,
+    rgba(4, 6, 10, 0.94) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.play-scene-panel--photo > * {
+  position: relative;
+  z-index: 1;
+}
+
+.play-scene-panel .scene-hero {
+  font-size: clamp(1.15rem, 2.4vw, 1.35rem);
+  line-height: 1.55;
+  font-weight: 500;
+  max-width: 54ch;
+  min-height: 4.5em;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.play-scene-panel .scene-provenance {
+  opacity: 0.42;
+  font-size: 9px;
+}
+
+.play-meters {
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  opacity: 0.72;
+}
+
+.play-meters .meter-bar__label {
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+.play-meters .meter-bar__value {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.play-meters .meter-bar__track {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.screen-transition {
+  width: 100%;
+}
+
 .app-footer {
   margin-top: auto;
   padding: 28px 20px 36px;
@@ -1799,13 +1949,19 @@ body {
   animation: meterPop var(--meter-ease-s, 0.7s) ease;
 }
 
+.meter-fill--pop {
+  animation: meterPop var(--meter-ease-s, 0.7s) ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   .scene-in,
   .pulse-dot,
   .bar>span,
   .bar.changed>span,
+  .meter-fill--pop,
   .stage,
+  .screen-transition,
   .stream-cursor,
   .stream-tail,
   .interaction-reveal,
