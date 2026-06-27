@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { Career, RunResult } from "@careersim/engine";
+import { Career, RunResult, ArcProgress, hasArc } from "@careersim/engine";
 import { reflect } from "@careersim/engine";
 import { CAREERS } from "@careersim/engine";
 import { Theme } from "./theme";
@@ -11,15 +11,19 @@ export function Debrief({
   career,
   result,
   theme,
+  arc,
   onTryAdjacent,
   onReplay,
+  onContinueArc,
   onCompare,
 }: {
   career: Career;
   result: RunResult;
   theme: Theme;
+  arc?: ArcProgress | null;
   onTryAdjacent: (careerId: string) => void;
   onReplay: () => void;
+  onContinueArc?: () => void;
   onCompare: () => void;
 }) {
   const r = reflect(career, result);
@@ -143,7 +147,20 @@ export function Debrief({
         {r.caveat}
       </p>
 
-      <div style={{ display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {arc && hasArc(career.id) && !arc.complete && onContinueArc && (
+          <button
+            className="choice-btn"
+            style={{
+              width: "auto",
+              background: theme.accentSoft,
+              borderColor: theme.edge,
+            }}
+            onClick={onContinueArc}
+          >
+            Continue to day {arc.currentDay} →
+          </button>
+        )}
         <button
           className="choice-btn"
           style={{

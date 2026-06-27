@@ -7,8 +7,10 @@ import { nurse } from "./nurse";
 import { journalist } from "./journalist";
 import { socialworker } from "./socialworker";
 import { uxdesigner } from "./uxdesigner";
+import { CAREER_MENTORS } from "./mentors";
+import { BEAT_GLOSSARIES } from "./glossaries";
 
-export const CAREERS: Record<string, Career> = {
+const RAW: Record<string, Career> = {
   surgeon,
   engineer,
   teacher,
@@ -18,6 +20,21 @@ export const CAREERS: Record<string, Career> = {
   socialworker,
   uxdesigner,
 };
+
+function enrichCareer(c: Career): Career {
+  return {
+    ...c,
+    mentor: CAREER_MENTORS[c.id],
+    beats: c.beats.map((b) => ({
+      ...b,
+      glossary: b.glossary ?? BEAT_GLOSSARIES[`${c.id}:${b.id}`],
+    })),
+  };
+}
+
+export const CAREERS: Record<string, Career> = Object.fromEntries(
+  Object.entries(RAW).map(([id, c]) => [id, enrichCareer(c)]),
+);
 
 export const CAREER_LIST: Career[] = Object.values(CAREERS);
 

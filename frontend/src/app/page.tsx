@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   Career,
   RunResult,
@@ -32,6 +32,7 @@ import { LiveBackground } from "@/components/LiveBackground";
 import { Onboarding, useOnboarding } from "@/components/Onboarding";
 import { SavedRunsPanel } from "@/components/SavedRuns";
 import { useDramatizedBeat } from "@/components/useDramatizedBeat";
+import { ArcDebrief } from "@/components/ai/ArcDebrief";
 import { ScreenTransition } from "@/components/ScreenTransition";
 
 type Screen = AppScreen;
@@ -46,13 +47,21 @@ export default function Page() {
   const [playArc, setPlayArc] = useState<ArcProgress | null>(null);
   const [playKey, setPlayKey] = useState(0);
   const [runsRefreshKey, setRunsRefreshKey] = useState(0);
+  const [runCount, setRunCount] = useState(0);
   const onboarding = useOnboarding();
-  const runCount = useMemo(() => loadRunHistory().length, [runsRefreshKey, screen]);
+
+  useEffect(() => {
+    setRunCount(loadRunHistory().length);
+  }, [runsRefreshKey, screen]);
 
   const stageTheme = resolveStageTheme(screen, career);
   const isShell = screen === "select" || screen === "runs";
   const simAmbient = {
-    active: screen === "play" || screen === "debrief" || screen === "compare",
+    active:
+      screen === "play" ||
+      screen === "debrief" ||
+      screen === "arcDebrief" ||
+      screen === "compare",
     play: screen === "play",
     careerId: career?.id,
     energy: runs[career?.id ?? ""]?.finalState.energy,
@@ -171,7 +180,11 @@ export default function Page() {
                     createSavedRunRecord(career, r, updatedArc ?? playArc),
                   );
                   setRunsRefreshKey((k) => k + 1);
-                  setScreen("debrief");
+                  if (updatedArc?.complete && hasArc(career.id)) {
+                    setScreen("arcDebrief");
+                  } else {
+                    setScreen("debrief");
+                  }
                 }}
               />
             )}
@@ -181,7 +194,9 @@ export default function Page() {
                 career={career}
                 result={runs[career.id]}
                 theme={themeFor(career)}
+                arc={playArc}
                 onTryAdjacent={(id) => CAREERS[id] && start(CAREERS[id])}
+                onContinueArc={continueArc}
                 onReplay={() => {
                   if (!career || !playArc || !hasArc(career.id)) {
                     start(career);
@@ -203,6 +218,21 @@ export default function Page() {
                 onCompare={() => setScreen("compare")}
               />
             )}
+
+            {screen === "arcDebrief" &&
+              career &&
+              playArc?.complete &&
+              playArc.completedDays.length > 0 && (
+                <ArcDebrief
+                  career={career}
+                  days={playArc.completedDays}
+                  theme={themeFor(career)}
+                  liveEnabled={live}
+                  onRestartArc={restartArc}
+                  onTryAdjacent={(id) => CAREERS[id] && start(CAREERS[id])}
+                  onCompare={() => setScreen("compare")}
+                />
+              )}
 
             {screen === "compare" && career && (
               <CompareGate
@@ -233,6 +263,12 @@ function PlayScreen({
 }) {
   const arcDay = arc?.currentDay ?? 1;
   const prevDay = arc?.completedDays[arc.completedDays.length - 1];
+  const [mentorQuestionsLeft, setMentorQuestionsLeft] = useState(3);
+
+  useEffect(() => {
+    setMentorQuestionsLeft(3);
+  }, [arcDay, career.id]);
+
   const initialState = useMemo(
     () => initArcDayState(career, arcDay, prevDay),
     [career, arcDay, prevDay],
@@ -264,6 +300,21 @@ function PlayScreen({
 
   const carryover =
     arcDay > 1 && prevDay ? carryoverSummary(career, prevDay) : null;
+
+  const recentTranscript = useMemo(() => {
+    const t = run.result.transcript;
+    if (t.length === 0) return "";
+    return t
+      .slice(-2)
+      .map((e) => e.choiceLabel)
+      .join("; ");
+  }, [run.result.transcript]);
+
+  const handleMentorAsked = useCallback((success: boolean) => {
+    if (success) {
+      setMentorQuestionsLeft((n) => Math.max(0, n - 1));
+    }
+  }, []);
 
   return (
     <div className="play-layout">
@@ -323,6 +374,11 @@ function PlayScreen({
           onAdvance={run.advance}
           layout="play"
           careerId={career.id}
+          career={career}
+          liveEnabled={live}
+          mentorQuestionsLeft={mentorQuestionsLeft}
+          onMentorAsked={handleMentorAsked}
+          recentTranscript={recentTranscript}
         />
       )}
 

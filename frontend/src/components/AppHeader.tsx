@@ -56,7 +56,7 @@ export function AppHeader({
           </button>
         </nav>
       </div>
-      {supported && (
+      {supported ? (
         <div className="app-header__controls">
           <ToggleSwitch
             label="auto read"
@@ -66,23 +66,24 @@ export function AppHeader({
           />
           {!onHomeScreen && (
             <ToggleSwitch
-              label="live dramatization"
+              label="live"
               value={live}
               onChange={setLive}
-              title="When on, scenes are re-dramatized live by the model - grounded in the same facts, never changing what your choices do."
+              title="When on, scenes are re-dramatized and AI help calls the model. Requires ANTHROPIC_API_KEY."
             />
           )}
         </div>
-      )}
-      {!supported && !onHomeScreen && (
-        <div className="app-header__controls">
-          <ToggleSwitch
-            label="live dramatization"
-            value={live}
-            onChange={setLive}
-            title="When on, scenes are re-dramatized live by the model - grounded in the same facts, never changing what your choices do."
-          />
-        </div>
+      ) : (
+        !onHomeScreen && (
+          <div className="app-header__controls">
+            <ToggleSwitch
+              label="live"
+              value={live}
+              onChange={setLive}
+              title="When on, scenes are re-dramatized and AI help calls the model. Requires ANTHROPIC_API_KEY."
+            />
+          </div>
+        )
       )}
     </header>
   );

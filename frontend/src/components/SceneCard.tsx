@@ -1,8 +1,9 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   Beat,
+  Career,
   Choice,
   DramatizedBeat,
   isRankBeat,
@@ -14,6 +15,8 @@ import { DeltaPreview } from "./DeltaPreview";
 import { PressureBar } from "./PressureBar";
 import { RankScene } from "./RankScene";
 import { StreamingText } from "./StreamingText";
+import { GlossarySceneText } from "./ai/GlossarySceneText";
+import { MentorDrawer } from "./ai/MentorDrawer";
 import { SpeakerButton } from "./SpeakerButton";
 import { useNarration } from "./speech/useNarration";
 import { BeatTransition } from "./ScreenTransition";
@@ -31,6 +34,11 @@ export function SceneCard({
   onAdvance,
   layout = "default",
   careerId,
+  career,
+  liveEnabled = false,
+  mentorQuestionsLeft = 0,
+  onMentorAsked,
+  recentTranscript = "",
 }: {
   beat: Beat;
   content: DramatizedBeat;
@@ -43,16 +51,25 @@ export function SceneCard({
   onAdvance: () => void;
   layout?: "default" | "play";
   careerId?: string;
+  career?: Career;
+  liveEnabled?: boolean;
+  mentorQuestionsLeft?: number;
+  onMentorAsked?: (success: boolean) => void;
+  recentTranscript?: string;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
   const [consequenceReady, setConsequenceReady] = useState(false);
+  const [mentorOpen, setMentorOpen] = useState(false);
+  const [timerHighlight, setTimerHighlight] = useState(false);
+  const wasMentorOpen = useRef(false);
 
   const rankMode = isRankBeat(beat) && !committed;
   const sceneStreamKey = `${beat.id}:scene:${content.source}:${content.scene.length}`;
   const consequenceStreamKey = committed
     ? `${beat.id}:consequence:${committed.id}`
     : "";
+  const hasGlossary = (beat.glossary?.length ?? 0) > 0;
 
   useEffect(() => {
     setSceneReady(false);
@@ -63,16 +80,25 @@ export function SceneCard({
     else setConsequenceReady(false);
   }, [committed?.id, committed]);
 
+  useEffect(() => {
+    if (wasMentorOpen.current && !mentorOpen) {
+      setTimerHighlight(true);
+      const t = window.setTimeout(() => setTimerHighlight(false), 1200);
+      return () => window.clearTimeout(t);
+    }
+    wasMentorOpen.current = mentorOpen;
+  }, [mentorOpen]);
+
   const handlePressureExpire = useCallback(() => {
-    if (committed || !beat.pressure || !sceneReady) return;
+    if (committed || !beat.pressure || !sceneReady || mentorOpen) return;
     const fallback = beat.choices.find(
       (c) => c.id === beat.pressure!.defaultChoiceId,
     );
     if (fallback) onCommit(fallback);
-  }, [beat, committed, onCommit, sceneReady]);
+  }, [beat, committed, mentorOpen, onCommit, sceneReady]);
 
   const showInteractions = sceneReady && !committed;
-  const timerPaused = !sceneReady || !!committed;
+  const timerPaused = !sceneReady || !!committed || mentorOpen;
 
   const sceneSpeechId = `scene:${sceneStreamKey}`;
   const sceneNarration = useNarration(
@@ -95,11 +121,25 @@ export function SceneCard({
   const playFocus = layout === "play";
   const ambientPhoto = playFocus && careerId ? careerAmbientUrl(careerId) : null;
   const ambientStyle = careerAmbientStyle(careerId);
+  const mentor = career?.mentor;
+  const showMentor =
+    committed &&
+    mentor &&
+    onMentorAsked &&
+    consequenceReady;
+
+  const sceneTextProps = {
+    text: content.scene,
+    streamKey: sceneStreamKey,
+    theme,
+    onComplete: () => setSceneReady(true),
+  };
 
   return (
     <BeatTransition beatKey={beat.id}>
+      <>
       <div
-        className={`${playFocus ? "play-scene-panel" : "scene-in"}${ambientPhoto ? " play-scene-panel--photo" : ""}`}
+        className={`${playFocus ? "play-scene-panel" : "scene-in"}${ambientPhoto ? " play-scene-panel--photo" : ""}${mentorOpen ? " play-scene-panel--mentor-open" : ""}`}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -117,6 +157,7 @@ export function SceneCard({
           pressure={beat.pressure}
           theme={theme}
           paused={timerPaused}
+          highlight={timerHighlight}
           onExpire={handlePressureExpire}
         />
       )}
@@ -145,12 +186,16 @@ export function SceneCard({
                 }
           }
         >
-          <StreamingText
-            text={content.scene}
-            streamKey={sceneStreamKey}
-            theme={theme}
-            onComplete={() => setSceneReady(true)}
-          />
+          {hasGlossary && careerId ? (
+            <GlossarySceneText
+              {...sceneTextProps}
+              beat={beat}
+              careerId={careerId}
+              liveEnabled={liveEnabled}
+            />
+          ) : (
+            <StreamingText {...sceneTextProps} />
+          )}
         </p>
         {sceneNarration.supported && !committed && (
           <SpeakerButton
@@ -243,19 +288,39 @@ export function SceneCard({
             )}
           </div>
           {consequenceReady && (
-            <button
-              type="button"
-              className="choice-btn interaction-reveal"
-              style={{
-                alignSelf: "flex-start",
-                width: "auto",
-                background: theme.accentSoft,
-                borderColor: theme.edge,
-              }}
-              onClick={onAdvance}
-            >
-              Continue →
-            </button>
+            <div className="consequence-actions">
+              {showMentor && (
+                <>
+                  <button
+                    type="button"
+                    className="choice-btn mentor-entry-btn"
+                    style={{
+                      background: theme.accentSoft,
+                      borderColor: theme.edge,
+                    }}
+                    onClick={() => setMentorOpen(true)}
+                    disabled={mentorQuestionsLeft <= 0}
+                  >
+                    {mentor!.askLabel}
+                  </button>
+                  <span className="mentor-counter faint">
+                    {mentorQuestionsLeft} left
+                  </span>
+                </>
+              )}
+              <button
+                type="button"
+                className="choice-btn interaction-reveal"
+                style={{
+                  width: "auto",
+                  background: theme.accentSoft,
+                  borderColor: theme.edge,
+                }}
+                onClick={onAdvance}
+              >
+                Continue →
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -268,6 +333,22 @@ export function SceneCard({
         subdued={playFocus}
       />
       </div>
+
+      {showMentor && mentorOpen && (
+        <MentorDrawer
+          open={mentorOpen}
+          onClose={() => setMentorOpen(false)}
+          career={career!}
+          beat={beat}
+          committed={committed}
+          mentor={mentor!}
+          theme={theme}
+          questionsLeft={mentorQuestionsLeft}
+          onAsked={onMentorAsked!}
+          recentTranscript={recentTranscript}
+        />
+      )}
+      </>
     </BeatTransition>
   );
 }

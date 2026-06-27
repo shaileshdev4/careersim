@@ -8,11 +8,13 @@ export function PressureBar({
   pressure,
   theme,
   paused,
+  highlight,
   onExpire,
 }: {
   pressure: BeatPressure;
   theme: Theme;
   paused: boolean;
+  highlight?: boolean;
   onExpire: () => void;
 }) {
   const [remaining, setRemaining] = useState(pressure.deadlineSeconds);
@@ -38,7 +40,10 @@ export function PressureBar({
   const urgent = remaining <= 10;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <div
+      className={highlight ? "pressure-bar--highlight" : undefined}
+      style={{ display: "flex", flexDirection: "column", gap: 6 }}
+    >
       <div
         style={{
           display: "flex",

@@ -9,10 +9,14 @@ export function tempoToSpeechRate(tempo: number): number {
 export function useSpeech() {
   const [speaking, setSpeaking] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [supported, setSupported] = useState(false);
   const idRef = useRef<string | null>(null);
 
-  const supported =
-    typeof window !== "undefined" && "speechSynthesis" in window;
+  useEffect(() => {
+    setSupported(
+      typeof window !== "undefined" && "speechSynthesis" in window,
+    );
+  }, []);
 
   const stop = useCallback(() => {
     if (!supported) return;

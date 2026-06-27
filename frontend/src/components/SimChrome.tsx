@@ -36,10 +36,10 @@ export function SimChrome({
           />
         )}
         <ToggleSwitch
-          label="live dramatization"
+          label="live"
           value={live}
           onChange={setLive}
-          title="When on, scenes are re-dramatized live by the model - grounded in the same facts, never changing what your choices do."
+          title="When on, scenes are re-dramatized and AI help (definitions, mentor, arc reflection) calls the model. Requires ANTHROPIC_API_KEY in frontend/.env.local."
         />
       </div>
     </div>

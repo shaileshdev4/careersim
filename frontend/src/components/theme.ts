@@ -88,7 +88,13 @@ export const NEUTRAL_THEME: Theme = {
   jitter: 0,
 };
 
-export type AppScreen = "select" | "play" | "debrief" | "compare" | "runs";
+export type AppScreen =
+  | "select"
+  | "play"
+  | "debrief"
+  | "arcDebrief"
+  | "compare"
+  | "runs";
 
 /** Pick stage theme from the active screen - home stays neutral even if career state lingers. */
 export function resolveStageTheme(
@@ -96,6 +102,7 @@ export function resolveStageTheme(
   career: Career | null,
 ): Theme {
   if (screen === "select" || screen === "runs") return NEUTRAL_THEME;
+  if (screen === "arcDebrief" && career) return themeFor(career);
   if (career) return themeFor(career);
   return NEUTRAL_THEME;
 }

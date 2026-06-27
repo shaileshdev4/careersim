@@ -118,6 +118,14 @@ export interface BeatRank {
   topItemToChoiceId: Record<string, string>;
 }
 
+/** Askable term anchored to exact scene substring. */
+export interface GlossaryTerm {
+  term: string;
+  anchor_text: string;
+  /** Authored one-liner when the define API is unavailable. */
+  fallback?: string;
+}
+
 export interface Beat {
   id: string;
   phase: BeatPhase;
@@ -148,6 +156,21 @@ export interface Beat {
   priority?: number;
   /** Marks a beat as a valid day-ender. */
   isFinale?: boolean;
+  /** Terms the player can tap for in-scene definitions. */
+  glossary?: GlossaryTerm[];
+}
+
+/** In-character senior mentor (between beats only). */
+export interface CareerMentor {
+  name: string;
+  role: string;
+  voice: string;
+  /** One line: what they're doing in-world right now. */
+  now: string;
+  redLines: string[];
+  /** Button label, e.g. "Ask Dr. Reyes →" */
+  askLabel: string;
+  suggestedQuestions?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +210,7 @@ export interface Career {
   /** First beat id. */
   openingBeatId: string;
   sources: Source[];
+  mentor?: CareerMentor;
 }
 
 // ---------------------------------------------------------------------------
