@@ -106,7 +106,6 @@ export function SceneCard({
           gap: playFocus ? 16 : 18,
           ...(ambientPhoto
             ? ({
-                // @ts-expect-error custom props
                 "--panel-photo": `url(${ambientPhoto})`,
                 "--panel-photo-position": ambientStyle.position ?? "center",
               } as CSSProperties)
